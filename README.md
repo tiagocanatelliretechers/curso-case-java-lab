@@ -1,92 +1,92 @@
-# Curso CASE Java — Certified Application Security Engineer
+# Curso CASE Java — Laboratório (Portal de Pedidos B2B)
 
-Material completo do curso **Application Security em Java** (24h, 6 aulas de 4h),
-formato CASE, para desenvolvedores Java com 2+ anos de experiência.
+Aplicação **Spring Boot 3 / Java 17** propositalmente vulnerável, usada nos
+laboratórios do curso **CASE Java (Certified Application Security Engineer)**.
+Este repositório é o **código que o aluno executa e corrige** nos labs.
 
-## Estrutura do repositório
+> ⚠️ Código **intencionalmente inseguro**, apenas para fins didáticos. Não use em produção.
 
-```
-portal-pedidos/     Aplicação de referência (Spring Boot, propositalmente vulnerável)
-                    -> os laboratórios de todas as aulas evoluem este projeto
-infra/              docker-compose da infra (app + Postgres + SonarQube)
-scripts/            start.sh (Linux/macOS) e start.ps1 (Windows) — sobem tudo
-materiais/
-  aula-1/ .. aula-6/  slides, conteúdo, guia de lab, gabarito, quiz, anexos
-  MANUAL-AMBIENTE-ALUNO.md
-  mapa-rastreabilidade.md
-  simulado-final.md
-LABS.md             mapa de execução dos labs (onde, como, com um comando)
-```
+## 1. Pré-requisitos
 
-## Instalar os pré-requisitos (máquina zerada)
+Máquina zerada? Um script instala **Git, Java 17, Maven e (opcional) Docker/Eclipse**:
 
-Um script instala Git, Java 17, Maven, Docker e o Eclipse:
-
+**Windows** — duplo-clique em `scripts\setup-choco.bat` (Chocolatey) ou `scripts\setup.bat` (winget).
+Ou, num PowerShell **como Administrador**:
 ```powershell
-.\scripts\setup.ps1            # Windows (winget)
+.\scripts\setup-choco.ps1
+```
+
+**macOS / Linux**:
+```bash
+chmod +x scripts/setup.sh && ./scripts/setup.sh
+```
+
+Mínimo necessário para rodar: **Java 17** (o projeto já traz o wrapper `mvnw`).
+
+## 2. Subir o ambiente (um comando)
+
+**Sem Docker** (app em H2, em memória — recomendado para a maioria dos labs):
+```powershell
+.\scripts\start.ps1 -NoDocker
 ```
 ```bash
-./scripts/setup.sh             # macOS (Homebrew) / Linux (apt)
+./scripts/start.sh --no-docker
 ```
 
-## Subir o ambiente com um comando
-
-```bash
-./scripts/start.sh --lab 1     # Linux/macOS: checkout do lab + sobe app+banco
-```
+**Com Docker** (app + Postgres):
 ```powershell
-.\scripts\start.ps1 -Lab 1     # Windows (PowerShell)
+.\scripts\start.ps1
+```
+```bash
+./scripts/start.sh
 ```
 
-Acesse <http://localhost:8080>. Detalhes, flags (`--sonar`, `--dev`, `--stop`) e a
-dinâmica dos laboratórios: ver **[LABS.md](LABS.md)**.
+Acesse <http://localhost:8080>.
 
-## As 6 aulas
+Contas de teste:
 
-| Aula | Tema | Módulos CASE |
-|------|------|--------------|
-| 1 | AppSec, ameaças e ataques + Levantamento de requisitos de segurança | 1, 2 |
-| 2 | Design/arquitetura seguros + Validação de entrada | 3, 4 |
-| 3 | Autenticação e autorização | 5 |
-| 4 | Criptografia + Gestão de sessão | 6, 7 |
-| 5 | Tratamento de erros + SAST & DAST | 8, 9 |
-| 6 | Deploy e manutenção seguros + Revisão e simulado | 10 |
+| E-mail | Senha | Papel |
+|--------|-------|-------|
+| admin@portal.com | admin123 | ADMIN |
+| joao@acme.com | senha123 | USER |
+| maria@globex.com | senha123 | USER |
 
-## Como usar
+Parar tudo: `.\scripts\start.ps1 -Stop` (ou `./scripts/start.sh --stop`).
 
-1. Suba a aplicação de referência (`portal-pedidos/`) seguindo o seu README.
-2. Cada aula tem, em `materiais/aula-N/`:
-   - `slides.md` — outline slide a slide (título + bullets + nota do apresentador)
-   - `lab.md` — guia de laboratório (entregue ao aluno)
-   - `gabarito.md` — soluções comentadas (**somente instrutor**)
-   - `quiz.md` — quiz de fechamento com gabarito
-   - `anexos/` — templates e fichas
-3. Os `.md` estão prontos para conversão em PPTX/DOCX/PDF.
+## 3. O codebase de cada aula (tags Git)
 
-## Branches e tags da aplicação
+Cada laboratório parte de um ponto da história do Git:
 
-- `master` — materiais das 6 aulas (slides `.md` + `.pptx`, labs, gabaritos, quizzes) +
-  aplicação no estado **baseline**.
-- branch `curso-progressivo` — progressão linear com uma correção por aula (compila em cada etapa).
-- branch `solucao-hardened` — solução final + testes JUnit (`mvn test` = 9 verdes).
+| Tag | Uso |
+|-----|-----|
+| `aula-1-baseline` … `aula-6-baseline` | ponto de partida de cada lab |
+| `aula-2-hardened` … `aula-6-hardened` | solução de referência |
 
-Tags (cada `aula-N-baseline` == `aula-(N-1)-hardened`, para o lab começar do estado corrigido anterior):
+O script já faz o checkout para você:
+```powershell
+.\scripts\start.ps1 -Lab 3 -NoDocker      # pega aula-3-baseline e sobe
+```
+```bash
+./scripts/start.sh --lab 3 --no-docker
+```
 
-| Tag | Estado |
-|-----|--------|
-| `aula-1-baseline` = `aula-2-baseline` | app vulnerável (Aula 1 não altera código) |
-| `aula-2-hardened` = `aula-3-baseline` | + SQLi parametrizado, Bean Validation/@CNPJ, upload seguro |
-| `aula-3-hardened` = `aula-4-baseline` | + IDOR, BCrypt+migração, rate limiting, /admin ADMIN |
-| `aula-4-hardened` = `aula-5-baseline` | + AES-256-GCM, JWT verificado, cookie/sessão, CSRF |
-| `aula-5-hardened` = `aula-6-baseline` | + error handling, log injection, headers, SSRF allowlist |
-| `aula-6-hardened` | + Actuator restrito, H2 off, commons-text atualizado, Dockerfile hardened, testes |
+> Os **guias de cada laboratório** (o que fazer em cada aula) são fornecidos pelo instrutor.
 
-Todas as correções foram **verificadas em execução** (ataques falham, uso legítimo funciona)
-e os testes JUnit passam em `aula-6-hardened`.
+## 4. Estrutura
 
-> Dica: `git checkout aula-1-baseline` (ponto de partida) · `git checkout aula-3-baseline`
-> (iniciar a Aula 3) · `git checkout solucao-hardened` (solução + testes).
-> Para rodar a solução, defina `PORTAL_JWT_SECRET` e `PORTAL_CRYPTO_KEY` (há defaults DEV no `application.yml`).
+```
+portal-pedidos/     aplicação Spring Boot (o código do lab)
+infra/              docker-compose (app + Postgres + SonarQube)
+scripts/            setup.* (instalar) e start.* (subir o ambiente)
+```
 
-> ⚠️ A aplicação é um ambiente de treinamento e contém vulnerabilidades reais de
-> propósito. Não a exponha na internet.
+## 5. Modos do start
+
+| Flag | O que faz |
+|------|-----------|
+| _(padrão)_ | app + Postgres via Docker |
+| `-NoDocker` / `--no-docker` | app em H2, sem Docker |
+| `-Dev` / `--dev` | só o banco no Docker; app via `mvnw` (editar/depurar) |
+| `-Lab N` / `--lab N` | checkout de `aula-N-baseline` e sobe |
+| `-Sonar` / `--sonar` | sobe também o SonarQube (:9000) |
+| `-Stop` / `--stop` | derruba tudo |
